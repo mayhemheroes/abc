@@ -1,0 +1,6 @@
+project: rnshah9/abc
+target: abc
+
+cmds:
+  - cmd: /repo/src/demo @@
+    filepath: /test.aig
