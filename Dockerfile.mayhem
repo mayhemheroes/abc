@@ -1,0 +1,12 @@
+FROM --platform=linux/amd64 ubuntu:20.04
+
+RUN apt-get update
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential libreadline-dev
+
+ADD . /repo
+WORKDIR /repo
+RUN make -j8 libabc.a
+WORKDIR /repo/src
+RUN cp ../libabc.a .
+RUN gcc -Wall -g -c demo.c -o demo.o
+RUN g++ -g -o demo demo.o libabc.a -lm -ldl -lreadline -lpthread
