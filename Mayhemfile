@@ -1,5 +1,5 @@
 project: rnshah9/abc
-target: abc
+target: demo
 
 cmds:
   - cmd: /repo/src/demo @@
