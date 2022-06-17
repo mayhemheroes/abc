@@ -1,6 +1,6 @@
-project: rnshah9/abc
+project: abc
 target: demo
 
 cmds:
-  - cmd: /repo/src/demo @@
+  - cmd: /repo/src/demo /test.aig
     filepath: /test.aig
