@@ -2,5 +2,4 @@ project: abc
 target: demo
 
 cmds:
-  - cmd: /repo/src/demo /test.aig
-    filepath: /test.aig
+  - cmd: /demo @@
