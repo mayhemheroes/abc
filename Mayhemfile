@@ -3,3 +3,4 @@ target: demo
 
 cmds:
   - cmd: /demo @@
+    filepath: /test.aig
