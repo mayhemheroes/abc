@@ -280,17 +280,36 @@ static int Mini_AigAndMulti( Mini_Aig_t * p, int * pLits, int nLits )
     }
     return pLits[0];
 }
-static int Mini_AigMuxMulti( Mini_Aig_t * p, int * pCtrl, int * pData, int nData )
+static int Mini_AigMuxMulti( Mini_Aig_t * p, int * pCtrl, int nCtrl, int * pData, int nData )
+{
+    int i, c;
+    assert( nData > 0 );
+    if ( nCtrl == 0 )
+        return pData[0];
+    assert( nData <= (1 << nCtrl) );
+    for ( c = 0; c < nCtrl; c++ )
+    {
+        for ( i = 0; i < nData/2; i++ )
+            pData[i] = Mini_AigMux( p, pCtrl[c], pData[2*i+1], pData[2*i] );
+        if ( nData & 1 )
+            pData[i++] = Mini_AigMux( p, pCtrl[c], 0, pData[nData-1] );
+        nData = i;
+    }
+    assert( nData == 1 );
+    return pData[0];
+}
+static int Mini_AigMuxMulti_rec( Mini_Aig_t * p, int * pCtrl, int * pData, int nData )
 {
     int Res0, Res1;
     assert( nData > 0 );
     if ( nData == 1 )
         return pData[0];
     assert( nData % 2 == 0 );
-    Res0 = Mini_AigMuxMulti( p, pCtrl+1, pData,         nData/2 );
-    Res1 = Mini_AigMuxMulti( p, pCtrl+1, pData+nData/2, nData/2 );
+    Res0 = Mini_AigMuxMulti_rec( p, pCtrl+1, pData,         nData/2 );
+    Res1 = Mini_AigMuxMulti_rec( p, pCtrl+1, pData+nData/2, nData/2 );
     return Mini_AigMux( p, pCtrl[0], Res1, Res0 );
 }
+
 
 static unsigned s_MiniTruths5[5] = {
     0xAAAAAAAA,
@@ -348,6 +367,20 @@ static inline int Mini_AigTruth( Mini_Aig_t * p, int * pVarLits, int nVars, unsi
     Lit0 = Mini_AigTruth( p, pVarLits, Var, Mini_AigTt5Cofactor0(Truth, Var) );
     Lit1 = Mini_AigTruth( p, pVarLits, Var, Mini_AigTt5Cofactor1(Truth, Var) );
     return Mini_AigMuxProp( p, pVarLits[Var], Lit1, Lit0 );
+}
+static char * Mini_AigPhase( Mini_Aig_t * p )
+{
+    char * pRes = MINI_AIG_CALLOC( char, Mini_AigNodeNum(p) );
+    int i;
+    Mini_AigForEachAnd( p, i )
+    {
+        int iFaninLit0 = Mini_AigNodeFanin0( p, i );
+        int iFaninLit1 = Mini_AigNodeFanin1( p, i );
+        int Phase0 = pRes[Mini_AigLit2Var(iFaninLit0)] ^ Mini_AigLitIsCompl(iFaninLit0);
+        int Phase1 = pRes[Mini_AigLit2Var(iFaninLit1)] ^ Mini_AigLitIsCompl(iFaninLit1);
+        pRes[i] = Phase0 & Phase1;
+    }
+    return pRes;
 }
 
 // procedure to check the topological order during AIG construction
@@ -612,6 +645,25 @@ int main( int argc, char ** argv )
         return 0;
     Mini_AigerTest( argv[1], argv[2] );
     return 1;
+}
+*/
+
+/*
+#include "aig/miniaig/miniaig.h"
+
+// this procedure creates a MiniAIG for function F = a*b + ~c and writes it into a file "test.aig"
+void Mini_AigTest()
+{
+    Mini_Aig_t * p = Mini_AigStart();    // create empty AIG manager (contains only const0 node)
+    int litApos = Mini_AigCreatePi( p ); // create input A (returns pos lit of A)
+    int litBpos = Mini_AigCreatePi( p ); // create input B (returns pos lit of B)
+    int litCpos = Mini_AigCreatePi( p ); // create input C (returns pos lit of C)
+    int litCneg = Mini_AigLitNot( litCpos ); // neg lit of C
+    int litAnd  = Mini_AigAnd( p, litApos, litBpos ); // lit for a*b
+    int litOr   = Mini_AigOr( p, litAnd, litCneg );   // lit for a*b + ~c
+    Mini_AigCreatePo( p, litOr );                     // create primary output
+    Mini_AigerWrite( "test.aig", p, 1 );              // write the result into a file
+    Mini_AigStop( p );                                // deallocate MiniAIG
 }
 */
 
