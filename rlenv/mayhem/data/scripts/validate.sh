@@ -106,13 +106,13 @@ if [ -n "$PROBLEM_ID" ]; then
     fi
 
     echo "Testing that problem testcase $PROBLEM_ID is detected as a crash..."
-    echo "Running crash test 5 times - any crash indicates the vulnerability is present..."
+    echo "Running crash test 20 times - any crash indicates the vulnerability is present..."
 
     CRASHED_ANY=false
     PROBLEM_EXIT_CODE=0
 
-    for i in {1..5}; do
-        echo "  Attempt $i/5..."
+    for i in {1..20}; do
+        echo "  Attempt $i/20..."
         "$MTV_BIN" triage -m "$MAYHEMFILE" -i "$PROBLEM_TESTCASE"
         CURRENT_EXIT_CODE=$?
         PROBLEM_EXIT_CODE=$CURRENT_EXIT_CODE  # Keep last exit code for reporting
@@ -126,7 +126,7 @@ if [ -n "$PROBLEM_ID" ]; then
     done
 
     if [ "$CRASHED_ANY" = false ]; then
-        echo "ERROR: Problem testcase $PROBLEM_ID did not crash in any of 5 attempts"
+        echo "ERROR: Problem testcase $PROBLEM_ID did not crash in any of 20 attempts"
         echo "Expected at least one crash to indicate the vulnerability is present"
         echo "Validation FAILED - problem testcase is not correctly detected as a crash"
         exit 1

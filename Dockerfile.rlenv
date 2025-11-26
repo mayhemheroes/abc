@@ -72,6 +72,9 @@ RUN cp demo /demo
 # Target executable (rwxrw-rw-)
 RUN chmod 766 /demo
 
+# Pre-create test.aig file for MTV (filepath from Mayhemfile)
+RUN touch /test.aig && chmod 666 /test.aig
+
 # Build output directory
 RUN chmod -R 777 /out 2>/dev/null || true
 
