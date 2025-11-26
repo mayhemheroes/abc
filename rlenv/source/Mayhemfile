@@ -1,0 +1,11 @@
+project: mayhemheroes/abc
+target: demo
+
+cmds:
+  - cmd: /demo @@
+    filepath: /test.aig
+    env: {}
+image: ghcr.io/mayhemheroes/abc@sha256:247dc5334ad4dc27f1ac059a4d1152e4ea2e407fb247fe377c71518525eabbb2
+duration: 60
+testsuite:
+  - https://app.mayhem.security/mayhemheroes/abc/demo/testsuite.tar

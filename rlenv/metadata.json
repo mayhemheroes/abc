@@ -1,0 +1,13 @@
+{
+  "workspace": "mayhemheroes",
+  "project": "abc",
+  "target": "demo",
+  "run_id": "31",
+  "ci_url": "https://github.com:443/mayhemheroes/abc/actions/runs/3524668089",
+  "run_image_name": "ghcr.io/mayhemheroes/abc:master",
+  "run_image_with_digest": "ghcr.io/mayhemheroes/abc@sha256:247dc5334ad4dc27f1ac059a4d1152e4ea2e407fb247fe377c71518525eabbb2",
+  "git_repo_url": "git@github.com:mayhemheroes/abc.git",
+  "git_revision": "deb6749b92021d5a5942da39436c56112d314a19",
+  "target_executable": "/demo",
+  "working_dir": ""
+}

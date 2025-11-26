@@ -1,0 +1,99 @@
+# ============================================================================
+# RLENV Patch Playground - Single-Stage Build
+# ============================================================================
+# Project: abc
+# Original image: ghcr.io/mayhemheroes/abc:master
+# Git revision: deb6749b92021d5a5942da39436c56112d314a19
+# Target executable: /demo
+
+# ============================================================================
+# 1. Base Image Selection
+# ============================================================================
+FROM --platform=linux/amd64 ubuntu:20.04
+
+# ============================================================================
+# 2. System Dependencies (merged from both builder and package stages)
+# ============================================================================
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    build-essential \
+    libreadline-dev \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================================================
+# 3. Copy MTV Binary (REQUIRED - used by validate.sh)
+# ============================================================================
+COPY --from="us-east4-docker.pkg.dev/forallsecure-1/rlenv-staging/rlenv-mcp-static:latest" \
+     /rlenv/bin/mtv /rlenv/bin/mtv
+
+# ============================================================================
+# 4. Language-Specific Setup
+# ============================================================================
+# C/C++ project - no special environment variables needed
+
+# ============================================================================
+# 5. Copy Source Code (EARLY - source exists now)
+# ============================================================================
+COPY . /rlenv/source/abc/
+
+# ============================================================================
+# 6. Make Source World-Writable (REQUIRED for non-root rebuilds)
+# ============================================================================
+RUN chmod -R 777 /rlenv/source
+
+# ============================================================================
+# 7. Set Working Directory
+# ============================================================================
+WORKDIR /rlenv/source/abc/
+
+# ============================================================================
+# 8. Install Language Dependencies (if any)
+# ============================================================================
+# No additional language dependencies needed for this C/C++ project
+
+# ============================================================================
+# 9. Build Application
+# ============================================================================
+RUN make -j8 libabc.a
+
+WORKDIR /rlenv/source/abc/src
+RUN cp ../libabc.a .
+RUN gcc -Wall -g -c demo.c -o demo.o
+RUN g++ -g -o demo demo.o libabc.a -lm -ldl -lreadline -lpthread
+
+# ============================================================================
+# 10. Copy Artifacts to Expected Locations
+# ============================================================================
+RUN cp demo /demo
+
+# ============================================================================
+# 11. Permission Management (REQUIRED)
+# ============================================================================
+# Target executable (rwxrw-rw-)
+RUN chmod 766 /demo
+
+# Build output directory
+RUN chmod -R 777 /out 2>/dev/null || true
+
+# Cache directories
+RUN chmod -R 777 /root/.cache 2>/dev/null || true
+
+# ============================================================================
+# 12. Copy rlenv Directory (MUST BE NEAR END - doesn't exist yet!)
+# ============================================================================
+COPY rlenv /rlenv
+
+# ============================================================================
+# 13. Final Permission Fix (REQUIRED)
+# ============================================================================
+RUN chmod -R 777 /rlenv/source
+
+# ============================================================================
+# 14. Set Entry Point
+# ============================================================================
+CMD ["/demo"]
+
+# ============================================================================
+# 15. Reset Working Directory
+# ============================================================================
+WORKDIR /
