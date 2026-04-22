@@ -4,3 +4,5 @@ target: demo
 cmds:
   - cmd: /demo @@
     filepath: /test.aig
+    env:
+      MFUZZ_COMPAT_LEVEL: "1"
