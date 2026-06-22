@@ -1,0 +1,28 @@
+project: abc
+target: demo
+
+# File-input (CLI) target: feed the fuzz bytes as a circuit file to ABC's static-library demo
+# (src/demo.c). demo runs the whole ABC pipeline on the input — `read @@` (Io_Read auto-detects the
+# format from the file: AIGER / BLIF / Verilog / PLA / BAF / …), then balance, print_stats, a
+# rewrite/refactor synthesis script, and `cec` equivalence verification. The natural fuzz surface is
+# ABC's circuit reader + AIG synthesis engine on a file, so this is a direct file-input target (no
+# libFuzzer harness). @@ is the input-file placeholder.
+#
+# Ported from the old integration's target (old: `/demo @@` on a fixed /test.aig path). Kept the
+# `demo` target name for parity. The seed is ABC's own i10.aig (a real binary-AIGER circuit shipped
+# in the repo), so Mayhem starts from a valid circuit and mutates into the parser/synthesis surface.
+cmds:
+  - cmd: /mayhem/demo @@
+    # demo writes result.blif to its CWD (then reads it back for `cec`).
+    # Under Mayhem's read-only image mount the only writable location is /dev/shm,
+    # so we set cwd=/dev/shm to redirect both the write_blif output and the
+    # subsequent cec read to /dev/shm/result.blif (always writable).
+    cwd: /dev/shm
+    env:
+      MFUZZ_COMPAT_LEVEL: "1"
+# demo reads a structured AIGER/BLIF circuit; random bytes are rejected at the
+# header before any synthesis edges are reached.  The i10.aig seed (ABC's own
+# benchmark circuit) drives the reader + balancer + rewriter into real synthesis
+# coverage on the very first iteration, so the testsuite seed is load-bearing.
+testsuite: # mayhem-lint: keep-testsuite
+  - file:///mayhem/mayhem/testsuite/demo
